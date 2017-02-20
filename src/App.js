@@ -16,6 +16,8 @@ class App extends Component {
   onCellClick = (row, col) => {
     let cells = this.state.cells;
     cells[row][col].hit = !cells[row][col].hit;
+    // TODO: State objects should be immutable; we should use the React immutability helpers
+    // to create a shallow copy of the cells with only the specific one changed
     this.setState(cells);
   };
 
