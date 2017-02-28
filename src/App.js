@@ -32,6 +32,7 @@ class App extends Component {
 
     this.socket.onmessage = (event) => {
       var parsedMessage = JSON.parse(event.data)
+      console.log(parsedMessage);
 
       switch (parsedMessage.type) {
         case 'boardState':

@@ -59,7 +59,7 @@ wss.on('connection', function connection(ws) {
 			    	player: (client.id === ws.id) ? 'me' : 'you',
 			    	board: newBoard
 			    };
-	  			ws.send(JSON.stringify(response));
+	  			client.send(JSON.stringify(response));
   			});
   			break;
 
