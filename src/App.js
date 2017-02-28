@@ -11,20 +11,50 @@ const INITIAL_CELLS = [
 
 class App extends Component {
 
+  socket = null;
+
   state = { cells: INITIAL_CELLS };
 
   onCellClick = (row, col) => {
-    let cells = this.state.cells;
-    cells[row][col].hit = !cells[row][col].hit;
-    // TODO: State objects should be immutable; we should use the React immutability helpers
-    // to create a shallow copy of the cells with only the specific one changed
-    this.setState(cells);
+    this.socket.send(JSON.stringify({
+      type: 'cellClick',
+      row: row,
+      col: col
+    }));
   };
+
+  startWebSocket = () => {
+    this.socket = new WebSocket('ws://localhost:8080');
+    this.socket.onmessage = (event) => {
+      var parsedMessage = JSON.parse(event.data)
+
+      switch (parsedMessage.type) {
+        case 'boardState':
+          this.setState({ cells: parsedMessage.board})
+      }
+    }
+  }
+
+  sendWebSocket = () => {
+    this.socket.send(JSON.stringify({
+        type: 'cellClick',
+        row: 2,
+        col: 2
+    }));
+  }
 
   render() {
     return (
+      <div>
       <div className="App">
         <Board cells={this.state.cells} onCellClick={this.onCellClick} />
+      </div>
+      <div onClick={this.startWebSocket}>
+        Click Me to open web socket
+      </div>
+      <div onClick={this.sendWebSocket}>
+        Click me to send on a web socket!!!
+      </div>
       </div>
     );
   }
