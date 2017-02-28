@@ -11,20 +11,36 @@ const state = {
 	player1Board: [...INITIAL_CELLS]
 }
 
+function printBoard(board) {
+	for (row in board) {
+		let rowStr = '';
+		for (cell in row) {
+			rowStr += cell.hit ? 'X' : '.';
+		}
+		console.log(rowStr);
+	}
+}
+
+function printState() {
+	console.log('Player 0 board:');
+	printBoard(state.player0Board);
+	console.log('Player 1 board:');
+	printBoard(state.player1Board);
+}
+
 const clients = []
 
 const onCellClick = (parsedMessage, clientId) => {
 	let {row, col} = parsedMessage;
-	console.log('Received message from player ' + clientId);
-	console.log(typeof clientId);
-    let cells = clientId === 0? state.player1Board : state.player0Board;
-    cells[row][col].hit = !cells[row][col].hit;
-    // TODO: State objects should be immutable; we should use the React immutability helpers
-    // to create a shallow copy of the cells with only the specific one changed
-    console.log('Clicked on the cell');
+	console.log('Player ' + clientId + ' clicked a cell. Before update:');
+	printState();
+	let cells = clientId === 0? state.player0Board : state.player1Board;
+	cells[row][col].hit = !cells[row][col].hit;
 
-    return cells;
-  };
+	console.log('After update:');
+	printState();
+	return cells;
+};
 
 const wss = new WebSocket.Server({ port: 8080, clientTracking: true });
 
