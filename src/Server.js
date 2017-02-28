@@ -1,14 +1,9 @@
 const WebSocket = require('ws');
 
-const INITIAL_CELLS = [
-  [{shipId:"A"}, {}, {hit:true}],
-  [{shipId:"A", hit:true}, {}, {}],
-  [{shipId:"A", hit:true}, {shipId:"B", hit:true}, {shipId:"B"}]
-];
 
 const state = {
-	player0Board: [...INITIAL_CELLS],
-	player1Board: [...INITIAL_CELLS]
+	player0Board: [[{shipId:"A"}, {}, {}], [{}, {}, {}], [{}, {}, {}] ],
+	player1Board: [[{shipId:"B"}, {}, {}], [{}, {}, {}], [{}, {}, {}] ]
 }
 
 function printBoard(board) {
@@ -89,5 +84,28 @@ wss.on('connection', function connection(ws) {
   	type: 'clientId',
   	id: ws.id
   }));
-  //ws.send('something');
+
+  if (ws.id === 0) {
+  	ws.send(JSON.stringify({
+  		type: 'boardState',
+  		player: 'me',
+  		board: state.player0Board
+  	}));
+  	ws.send(JSON.stringify({
+  		type: 'boardState',
+  		player: 'you',
+  		board: state.player1Board
+  	}));
+  } else {
+  	ws.send(JSON.stringify({
+  		type: 'boardState',
+  		player: 'me',
+  		board: state.player1Board
+  	}));
+  	ws.send(JSON.stringify({
+  		type: 'boardState',
+  		player: 'you',
+  		board: state.player0Board
+  	}));
+  }
 });
