@@ -14,9 +14,11 @@ export class Cell extends Component {
   boundOnMouseLeave = () => this.setState({ hovered: false });
 
   render() {
+    let cellColor = this.props.onClick ? 'rgb(255, 0, 0)' : 'rgb(0, 255, 255)';
+
     let style = {
-      backgroundColor: (this.props.hit || this.state.clicked) ? 'rgb(255, 0, 0)' : null,
-      border: this.state.hovered ? '2px solid black' : '2px solid transparent',
+      backgroundColor: (this.props.hit || this.state.clicked) ? cellColor : null,
+      border: this.state.hovered && this.props.onClick ? '2px solid black' : '2px solid transparent',
       ...DEFAULT_STYLE
     };
 
@@ -34,5 +36,5 @@ export class Cell extends Component {
 Cell.propTypes = {
   hit: React.PropTypes.bool,
   shipId: React.PropTypes.string,
-  onClick: React.PropTypes.func.isRequired
+  onClick: React.PropTypes.func
 };

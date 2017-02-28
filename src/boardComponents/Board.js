@@ -8,7 +8,10 @@ export class Board extends Component {
         <div key={rowIdx} style={{ display: 'flex' }}>
           {
             row.map((cellProps, colIdx) => {
-              let onCellClick = () => this.props.onCellClick(rowIdx, colIdx);
+              let onCellClick = null;
+              if (this.props.onCellClick) {
+                onCellClick = () => this.props.onCellClick(rowIdx, colIdx);
+              }
               return <Cell {...cellProps} key={colIdx} onClick={onCellClick}/>;
             })
           }
@@ -26,5 +29,5 @@ Board.propTypes = {
              hit: React.PropTypes.bool,
              shipId: React.PropTypes.string
            }))),
-  onCellClick: React.PropTypes.func.isRequired
+  onCellClick: React.PropTypes.func
 };
