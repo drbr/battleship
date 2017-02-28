@@ -3,19 +3,13 @@ import './App.css';
 
 import { Board } from './boardComponents/Board';
 
-const INITIAL_CELLS = [
-  [{shipId:"A"}, {}, {hit:true}],
-  [{shipId:"A", hit:true}, {}, {}],
-  [{shipId:"A", hit:true}, {shipId:"B", hit:true}, {shipId:"B"}]
-];
-
 class App extends Component {
 
   socket = null;
 
   state = {
-    myBoard: [...INITIAL_CELLS],
-    opponentBoard: [...INITIAL_CELLS],
+    myBoard: null,
+    opponentBoard: null,
     playerId: null
   };
 

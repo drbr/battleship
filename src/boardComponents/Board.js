@@ -3,6 +3,10 @@ import {Cell} from './Cell';
 
 export class Board extends Component {
   render() {
+    if (!this.props.cells) {
+      return null;
+    }
+
     let grid = this.props.cells.map((row, rowIdx) => {
       return (
         <div key={rowIdx} style={{ display: 'flex' }}>
