@@ -15,7 +15,9 @@ const clients = []
 
 const onCellClick = (parsedMessage, clientId) => {
 	let {row, col} = parsedMessage;
-    let cells = clientId === 0? state.player0Board : state.player1Board;
+	console.log('Received message from player ' + clientId);
+	console.log(typeof clientId);
+    let cells = clientId === 0? state.player1Board : state.player0Board;
     cells[row][col].hit = !cells[row][col].hit;
     // TODO: State objects should be immutable; we should use the React immutability helpers
     // to create a shallow copy of the cells with only the specific one changed
