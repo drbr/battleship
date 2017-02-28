@@ -7,9 +7,9 @@ const state = {
 }
 
 function printBoard(board) {
-	for (row in board) {
+	for (row of board) {
 		let rowStr = '';
-		for (cell in row) {
+		for (cell of row) {
 			rowStr += cell.hit ? 'X' : '.';
 		}
 		console.log(rowStr);
