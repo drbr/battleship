@@ -7,29 +7,42 @@ const INITIAL_CELLS = [
 ];
 
 const state = {
-	player1Board: [...INITIAL_CELLS],
-	player2Board: [...INITIAL_CELLS]
+	player0Board: [...INITIAL_CELLS],
+	player1Board: [...INITIAL_CELLS]
 }
 
-const onCellClick = (parsedMessage) => {
+const clients = []
+
+const onCellClick = (parsedMessage, clientId) => {
 	let {row, col} = parsedMessage;
-    let cells = state.player1Board;
+    let cells = clientId === 0? state.player0Board : state.player1Board;
     cells[row][col].hit = !cells[row][col].hit;
     // TODO: State objects should be immutable; we should use the React immutability helpers
     // to create a shallow copy of the cells with only the specific one changed
     console.log('Clicked on the cell');
-    var response = {
-    	type: 'boardState',
-    	player: 1,
-    	board: cells
-    };
 
-    return JSON.stringify(response);
+    return cells;
   };
 
-const wss = new WebSocket.Server({ port: 8080 });
+const wss = new WebSocket.Server({ port: 8080, clientTracking: true });
+
+// Broadcast to all.
+wss.broadcast = function broadcast(data) {
+  wss.clients.forEach(function each(client) {
+    if (client.readyState === WebSocket.OPEN) {
+    	console.log("A client:");
+    	console.log(client);
+      client.send(data);
+    }
+  });
+};
+
 
 wss.on('connection', function connection(ws) {
+
+	ws.id = clients.length;
+	clients.push(ws);
+
   ws.on('message', function incoming(message) {
     console.log('received:');
     console.log(JSON.parse(message));
@@ -38,13 +51,25 @@ wss.on('connection', function connection(ws) {
 
   	switch (parsedMessage.type) {
   		case 'cellClick':
-  			ws.send(onCellClick(parsedMessage));
+  			var newBoard = onCellClick(parsedMessage, ws.id);
+
+  			clients.forEach( client => {
+			    var response = {
+			    	type: 'boardState',
+			    	player: (client.id === ws.id) ? 'me' : 'you',
+			    	board: newBoard
+			    };
+	  			ws.send(JSON.stringify(response));
+  			});
   			break;
+
   		default:console.log("not recognized: %s", parsedMessage);
   	}
-
-
   });
 
+  ws.send(JSON.stringify({
+  	type: 'clientId',
+  	id: ws.id
+  }));
   //ws.send('something');
 });

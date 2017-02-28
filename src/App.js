@@ -13,7 +13,11 @@ class App extends Component {
 
   socket = null;
 
-  state = { cells: INITIAL_CELLS };
+  state = {
+    myBoard: [...INITIAL_CELLS],
+    opponentBoard: [...INITIAL_CELLS],
+    playerId: null
+  };
 
   onCellClick = (row, col) => {
     this.socket.send(JSON.stringify({
@@ -25,35 +29,34 @@ class App extends Component {
 
   startWebSocket = () => {
     this.socket = new WebSocket('ws://localhost:8080');
+
     this.socket.onmessage = (event) => {
       var parsedMessage = JSON.parse(event.data)
 
       switch (parsedMessage.type) {
         case 'boardState':
-          this.setState({ cells: parsedMessage.board})
+          if (parsedMessage.player === 'me') {
+            this.setState({ myBoard: parsedMessage.board });
+          } else {
+            this.setState({ opponentBoard: parsedMessage.board });
+          }
+        break;
+        case 'clientId':
+          this.setState({playerId: parsedMessage.id});
       }
     }
-  }
-
-  sendWebSocket = () => {
-    this.socket.send(JSON.stringify({
-        type: 'cellClick',
-        row: 2,
-        col: 2
-    }));
-  }
+  };
 
   render() {
     return (
       <div>
       <div className="App">
-        <Board cells={this.state.cells} onCellClick={this.onCellClick} />
+        <h1>You are player {this.state.playerId}</h1>
+        <Board cells={this.state.myBoard} onCellClick={this.onCellClick} />
+        <Board cells={this.state.opponentBoard}/>
       </div>
       <div onClick={this.startWebSocket}>
         Click Me to open web socket
-      </div>
-      <div onClick={this.sendWebSocket}>
-        Click me to send on a web socket!!!
       </div>
       </div>
     );
