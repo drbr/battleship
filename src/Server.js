@@ -1,27 +1,33 @@
 const WebSocket = require('ws');
 const _ = require('underscore');
+const StateMachine = require('./stateMachine/StateMachine');
+const {PHASES, ACTIONS} = require('./stateMachine/Phases');
 
-
+// legacy state
 const state = {
   player0Board: [[{shipId:"A"}, {}, {}], [{}, {}, {}], [{}, {}, {}] ],
   player1Board: [[{shipId:"B"}, {}, {}], [{}, {}, {}], [{}, {}, {}] ]
 }
+
 
 function printBoard(board) {
   for (row of board) {
     let rowStr = '';
     for (cell of row) {
       rowStr += cell.hit ? 'X' : '.';
+      rowStr += cell.shipId + "\t";
     }
     console.log(rowStr);
   }
 }
 
-function printState() {
-  console.log('Player 0 board:');
-  printBoard(state.player0Board);
-  console.log('Player 1 board:');
-  printBoard(state.player1Board);
+function printState(state) {
+  if (state.boardsByPlayer) {
+    for (let playerId in state.boardsByPlayer) {
+      console.log(`Player ${playerId} board:`);
+      printBoard(state.boardsByPlayer[playerId]);
+    }
+  }
 }
 
 const clients = {}
@@ -29,12 +35,10 @@ const clients = {}
 const onCellClick = (parsedMessage, clientId) => {
   let {row, col} = parsedMessage;
   console.log('Player ' + clientId + ' clicked a cell. Before update:');
-  printState();
   let cells = clientId === '0'? state.player0Board : state.player1Board;
   cells[row][col].hit = !cells[row][col].hit;
 
   console.log('After update:');
-  printState();
   return cells;
 };
 
@@ -44,6 +48,20 @@ wss.on('connection', function connection(ws) {
 
   ws.id = String(_(clients).size());
   clients[ws.id] = ws;
+
+  ws.send(JSON.stringify({
+    type: 'clientId',
+    id: ws.id
+  }));
+  
+  sendInitialBoardState(ws, state);
+
+  let newState = StateMachine.doAction({
+    name: ACTIONS.JoinGame,
+    playerId: ws.id,
+  });
+  printState(newState);
+
 
   ws.on('close', function (code, reason) {
     console.log(`Client ${ws.id} closed for reason: ${reason} (${code})`);
@@ -77,12 +95,7 @@ wss.on('connection', function connection(ws) {
     }
   });
 
-  ws.send(JSON.stringify({
-    type: 'clientId',
-    id: ws.id
-  }));
 
-  sendInitialBoardState(ws, state);
 
 });
 
@@ -100,3 +113,5 @@ function sendInitialBoardState(client, state) {
     board: yourBoard
   }));
 }
+
+
