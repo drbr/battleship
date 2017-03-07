@@ -2,7 +2,7 @@ import './App.css';
 
 const React = require('react');
 const Board = require('./boardComponents/Board');
-const ipAddress = require('./ipAddress');
+const ipAddress = require('../ipAddress');
 
 class App extends React.Component {
 
