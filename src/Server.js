@@ -45,6 +45,12 @@ wss.on('connection', function connection(ws) {
   ws.id = String(_(clients).size());
   clients[ws.id] = ws;
 
+  ws.on('close', function (code, reason) {
+    console.log(`Client ${ws.id} closed for reason: ${reason} (${code})`);
+    delete clients[ws.id];
+  });
+
+
   ws.on('message', function incoming(message) {
     console.log('received:');
     console.log(JSON.parse(message));
