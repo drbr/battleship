@@ -1,60 +1,49 @@
 const WebSocket = require('ws');
+const _ = require('underscore');
 
 
 const state = {
-	player0Board: [[{shipId:"A"}, {}, {}], [{}, {}, {}], [{}, {}, {}] ],
-	player1Board: [[{shipId:"B"}, {}, {}], [{}, {}, {}], [{}, {}, {}] ]
+  player0Board: [[{shipId:"A"}, {}, {}], [{}, {}, {}], [{}, {}, {}] ],
+  player1Board: [[{shipId:"B"}, {}, {}], [{}, {}, {}], [{}, {}, {}] ]
 }
 
 function printBoard(board) {
-	for (row of board) {
-		let rowStr = '';
-		for (cell of row) {
-			rowStr += cell.hit ? 'X' : '.';
-		}
-		console.log(rowStr);
-	}
+  for (row of board) {
+    let rowStr = '';
+    for (cell of row) {
+      rowStr += cell.hit ? 'X' : '.';
+    }
+    console.log(rowStr);
+  }
 }
 
 function printState() {
-	console.log('Player 0 board:');
-	printBoard(state.player0Board);
-	console.log('Player 1 board:');
-	printBoard(state.player1Board);
+  console.log('Player 0 board:');
+  printBoard(state.player0Board);
+  console.log('Player 1 board:');
+  printBoard(state.player1Board);
 }
 
-const clients = []
+const clients = {}
 
 const onCellClick = (parsedMessage, clientId) => {
-	let {row, col} = parsedMessage;
-	console.log('Player ' + clientId + ' clicked a cell. Before update:');
-	printState();
-	let cells = clientId === 0? state.player0Board : state.player1Board;
-	cells[row][col].hit = !cells[row][col].hit;
+  let {row, col} = parsedMessage;
+  console.log('Player ' + clientId + ' clicked a cell. Before update:');
+  printState();
+  let cells = clientId === '0'? state.player0Board : state.player1Board;
+  cells[row][col].hit = !cells[row][col].hit;
 
-	console.log('After update:');
-	printState();
-	return cells;
+  console.log('After update:');
+  printState();
+  return cells;
 };
 
 const wss = new WebSocket.Server({ port: 8080, clientTracking: true });
 
-// Broadcast to all.
-wss.broadcast = function broadcast(data) {
-  wss.clients.forEach(function each(client) {
-    if (client.readyState === WebSocket.OPEN) {
-    	console.log("A client:");
-    	console.log(client);
-      client.send(data);
-    }
-  });
-};
-
-
 wss.on('connection', function connection(ws) {
 
-	ws.id = clients.length;
-	clients.push(ws);
+  ws.id = String(_(clients).size());
+  clients[ws.id] = ws;
 
   ws.on('message', function incoming(message) {
     console.log('received:');
@@ -62,50 +51,46 @@ wss.on('connection', function connection(ws) {
 
     var parsedMessage = JSON.parse(message);
 
-  	switch (parsedMessage.type) {
-  		case 'cellClick':
-  			var newBoard = onCellClick(parsedMessage, ws.id);
+    switch (parsedMessage.type) {
+      case 'cellClick':
+        var newBoard = onCellClick(parsedMessage, ws.id);
 
-  			clients.forEach( client => {
-			    var response = {
-			    	type: 'boardState',
-			    	player: (client.id === ws.id) ? 'me' : 'you',
-			    	board: newBoard
-			    };
-	  			client.send(JSON.stringify(response));
-  			});
-  			break;
+        for (let clientId in clients) {
+          console.log('clientid: ' + clientId);
+          console.log('wsid: ' + ws.id);
+          var response = {
+            type: 'boardState',
+            player: (clientId === ws.id) ? 'me' : 'you',
+            board: newBoard
+          };
+          clients[clientId].send(JSON.stringify(response));
+        }
+        break;
 
-  		default:console.log("not recognized: %s", parsedMessage);
-  	}
+      default:console.log("not recognized: %s", parsedMessage);
+    }
   });
 
   ws.send(JSON.stringify({
-  	type: 'clientId',
-  	id: ws.id
+    type: 'clientId',
+    id: ws.id
   }));
 
-  if (ws.id === 0) {
-  	ws.send(JSON.stringify({
-  		type: 'boardState',
-  		player: 'me',
-  		board: state.player0Board
-  	}));
-  	ws.send(JSON.stringify({
-  		type: 'boardState',
-  		player: 'you',
-  		board: state.player1Board
-  	}));
-  } else {
-  	ws.send(JSON.stringify({
-  		type: 'boardState',
-  		player: 'me',
-  		board: state.player1Board
-  	}));
-  	ws.send(JSON.stringify({
-  		type: 'boardState',
-  		player: 'you',
-  		board: state.player0Board
-  	}));
-  }
+  sendInitialBoardState(ws, state);
+
 });
+
+function sendInitialBoardState(client, state) {
+  let myBoard = client.id === '0' ? state.player0Board : state.player1Board;
+  let yourBoard = client.id === '0' ? state.player1Board : state.player0Board;
+  client.send(JSON.stringify({
+    type: 'boardState',
+    player: 'me',
+    board: myBoard
+  }));
+  client.send(JSON.stringify({
+    type: 'boardState',
+    player: 'you',
+    board: yourBoard
+  }));
+}

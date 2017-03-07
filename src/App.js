@@ -1,9 +1,10 @@
-import React, { Component } from 'react';
 import './App.css';
 
-import { Board } from './boardComponents/Board';
+const React = require('react');
+const Board = require('./boardComponents/Board');
+const ipAddress = require('./ipAddress');
 
-class App extends Component {
+class App extends React.Component {
 
   socket = null;
 
@@ -22,7 +23,7 @@ class App extends Component {
   };
 
   startWebSocket = () => {
-    this.socket = new WebSocket('ws://localhost:8080');
+    this.socket = new WebSocket(`ws://${ipAddress}:8080`);
 
     this.socket.onmessage = (event) => {
       var parsedMessage = JSON.parse(event.data)
@@ -38,6 +39,9 @@ class App extends Component {
         break;
         case 'clientId':
           this.setState({playerId: parsedMessage.id});
+          break;
+        default:
+          console.log("errorrrrr");
       }
     }
   };

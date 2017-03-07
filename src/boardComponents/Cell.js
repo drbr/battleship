@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+const React = require('react');
 
 const CELL_SIZE = 30;
 
@@ -7,7 +7,7 @@ const DEFAULT_STYLE = {
   width: CELL_SIZE
 };
 
-export class Cell extends Component {
+class Cell extends React.Component {
   state = { hovered: false };
 
   boundOnMouseEnter = () => this.setState({ hovered: true });
@@ -38,3 +38,5 @@ Cell.propTypes = {
   shipId: React.PropTypes.string,
   onClick: React.PropTypes.func
 };
+
+module.exports = Cell;

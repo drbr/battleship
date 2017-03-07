@@ -1,7 +1,7 @@
-import React, { Component } from 'react';
-import {Cell} from './Cell';
+const React = require('react');
+const Cell = require('./Cell');
 
-export class Board extends Component {
+export class Board extends React.Component {
   render() {
     if (!this.props.cells) {
       return null;
@@ -35,3 +35,5 @@ Board.propTypes = {
            }))),
   onCellClick: React.PropTypes.func
 };
+
+module.exports = Board;
