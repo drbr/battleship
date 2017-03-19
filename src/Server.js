@@ -2,6 +2,7 @@ const WebSocket = require('ws');
 const _ = require('underscore');
 const StateMachine = require('./stateMachine/StateMachine');
 const {PHASES, ACTIONS} = require('./stateMachine/Phases');
+const {MESSAGE_TYPE} = require('./messages');
 
 // legacy state
 const state = {
@@ -49,19 +50,30 @@ wss.on('connection', function connection(ws) {
   ws.id = String(_(clients).size());
   clients[ws.id] = ws;
 
+  let newState;
+  let action = {
+    name: ACTIONS.JoinGame,
+    playerId: ws.id
+  };
+
+  try {
+    newState = StateMachine.doActionAndBroadcast(action, clients);
+  } catch (e) {
+    console.log(e);
+    ws.close(1000, e.message);
+    delete clients[ws.id];
+    return;
+  }
+  printState(newState);
+
+
   ws.send(JSON.stringify({
-    type: 'clientId',
+    type: MESSAGE_TYPE.CLIENT_ID,
     id: ws.id
   }));
   
+
   sendInitialBoardState(ws, state);
-
-  let newState = StateMachine.doAction({
-    name: ACTIONS.JoinGame,
-    playerId: ws.id,
-  });
-  printState(newState);
-
 
   ws.on('close', function (code, reason) {
     console.log(`Client ${ws.id} closed for reason: ${reason} (${code})`);

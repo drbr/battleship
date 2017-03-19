@@ -4,6 +4,8 @@ const React = require('react');
 const Board = require('./boardComponents/Board');
 const ipAddress = require('../ipAddress');
 
+const {MESSAGE_TYPE} = require('./messages');
+
 class App extends React.Component {
 
   socket = null;
@@ -37,8 +39,11 @@ class App extends React.Component {
             this.setState({ opponentBoard: parsedMessage.board });
           }
         break;
-        case 'clientId':
+        case MESSAGE_TYPE.CLIENT_ID:
           this.setState({playerId: parsedMessage.id});
+          break;
+        case MESSAGE_TYPE.STATE_INFO:
+          this.setState({phase: parsedMessage.state.phase})
           break;
         default:
           console.log("errorrrrr");
@@ -51,6 +56,9 @@ class App extends React.Component {
       <div>
       <div className="App">
         <h1>You are player {this.state.playerId}</h1>
+        <div>
+          Phase: {this.state.phase}
+        </div>
         <Board cells={this.state.myBoard} onCellClick={this.onCellClick} />
         <Board cells={this.state.opponentBoard}/>
       </div>

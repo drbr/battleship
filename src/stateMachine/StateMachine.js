@@ -1,12 +1,17 @@
-const {PHASES, ACTIONS} = require('./Phases');
 const _ = require('underscore');
+
+const { MESSAGE_TYPE }= require('../messages');
+
+const {PHASES, ACTIONS } = require('./Phases');
+const JoinGame = require('./actions/JoinGame');
+const PlaceShips = require('./actions/PlaceShips');
 
 let state = {
   phase: PHASES.WaitForPlayers,
   players: []
 };
 
-const StateProcessor = {
+const PHASE_ACTIONS = {
   [PHASES.WaitForPlayers]: {
     [ACTIONS.JoinGame]: JoinGame
   },
@@ -15,45 +20,38 @@ const StateProcessor = {
   }
 }
 
+const STATE_TRANSFORMERS = {
+  [PHASES.WaitForPlayers]: (state, clientId) => state,
+  [PHASES.PlaceShips]: (state, clientId) => ({
+    phase: state.phase,
+    boardsByPlayer: _.pick(state.boardsByPlayer, clientId)
+  })
+}
+
+
+
 function doAction(action) {
-  let validActions = StateProcessor[state.phase];
+  let validActions = PHASE_ACTIONS[state.phase];
   let actionProcessor = validActions[action.name];
   if (!actionProcessor) {
-    console.log(`Action ${action.name} is not valid for phase ${state.phase}`);
-    return null;
+    let errorMsg = `Action ${action.name} is not valid for phase ${state.phase}`;
+    console.log(errorMsg);
+    throw new Error(errorMsg);
   }
-  let newState = actionProcessor(action);
+  let newState = actionProcessor(state, action);
   console.log(newState);
   state = newState;
   return state;
-  // broadcast new state to clients, after passing through a robot in disguise
 }
 
-function JoinGame(action) {
-  if (state.players.length < 1) {
-    return {
-      phase: PHASES.WaitForPlayers,
-      players: state.players.concat(action.playerId)
-    };
-  } else {
-    const BOARD_SIZE = 4;
-    let boards = {};
-    let players = state.players.concat(action.playerId);
-    for (let playerId of players) {
-      boards[playerId] = _.times(BOARD_SIZE,
-          () => _.times(BOARD_SIZE,
-              idx => ({ shipId: idx, hit: false })));
-    }
-
-    return {
-      phase: PHASES.PlaceShips,
-      boardsByPlayer: boards
-    };
+function doActionAndBroadcast(action, clients) {
+  let newState = doAction(action);
+  for (let clientId in clients) {
+    let clientStateView = STATE_TRANSFORMERS[newState.phase](newState, clientId);
+    let message = { type: MESSAGE_TYPE.STATE_INFO, state: clientStateView };
+    clients[clientId].send(JSON.stringify(message));
   }
+  return newState;
 }
 
-function PlaceShips(action) {
-
-}
-
-module.exports = {doAction};
+module.exports = { doActionAndBroadcast };

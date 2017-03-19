@@ -10,4 +10,4 @@ const ACTIONS = {
   PlaceShips: "PlaceShips",
 }
 
-module.exports = {PHASES, ACTIONS};
+module.exports = { PHASES, ACTIONS };
