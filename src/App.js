@@ -2,26 +2,26 @@ import './App.css';
 
 const React = require('react');
 const Board = require('./boardComponents/Board');
+const WaitForPlayers = require('./client/WaitForPlayers');
+const PlaceShips = require('./client/PlaceShips');
+
 const ipAddress = require('../ipAddress');
 
 const {MESSAGE_TYPE} = require('./messages');
+const {PHASES} = require('./stateMachine/Phases');
+
+const ComponentForPhase = {
+  [PHASES.WaitForPlayers]: WaitForPlayers,
+  [PHASES.PlaceShips]: PlaceShips
+};
 
 class App extends React.Component {
 
   socket = null;
 
   state = {
-    myBoard: null,
-    opponentBoard: null,
-    playerId: null
-  };
-
-  onCellClick = (row, col) => {
-    this.socket.send(JSON.stringify({
-      type: 'cellClick',
-      row: row,
-      col: col
-    }));
+    playerId: null,
+    gameState: null
   };
 
   startWebSocket = () => {
@@ -32,6 +32,7 @@ class App extends React.Component {
       console.log(parsedMessage);
 
       switch (parsedMessage.type) {
+        //TODO get rid of this
         case 'boardState':
           if (parsedMessage.player === 'me') {
             this.setState({ myBoard: parsedMessage.board });
@@ -43,30 +44,46 @@ class App extends React.Component {
           this.setState({playerId: parsedMessage.id});
           break;
         case MESSAGE_TYPE.STATE_INFO:
-          this.setState({phase: parsedMessage.state.phase})
+        this.setState({gameState: parsedMessage.state})
           break;
         default:
           console.log("errorrrrr");
       }
     }
+
+    this.socket.onclose = (event) => {
+      alert(event.reason);
+    }
   };
+
+
+  getViewComponentForState() {
+    if (!this.state.gameState) {
+      return <ConnectToServer connect={this.startWebSocket} />;
+    }
+
+    let component = ComponentForPhase[this.state.gameState.phase];
+    if (component) {
+      return React.createElement(component, { gameState: this.state.gameState });
+    }
+
+    console.log("couldn't figure out what component to get");
+    return null;
+  }
 
   render() {
     return (
-      <div>
       <div className="App">
-        <h1>You are player {this.state.playerId}</h1>
-        <div>
-          Phase: {this.state.phase}
-        </div>
-        <Board cells={this.state.myBoard} onCellClick={this.onCellClick} />
-        <Board cells={this.state.opponentBoard}/>
-      </div>
-      <div onClick={this.startWebSocket}>
-        Click Me to open web socket
-      </div>
+        <h1>BattleBuoys!!!!!!!!!!!!</h1>
+        {this.getViewComponentForState()}
       </div>
     );
+  }
+}
+
+class ConnectToServer extends React.Component {
+  render() {
+    return <button onClick={this.props.connect}>Start</button>;
   }
 }
 

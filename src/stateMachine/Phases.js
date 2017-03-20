@@ -1,5 +1,5 @@
 const PHASES = {
-	WaitForPlayers: "WaitForPlayers",
+  WaitForPlayers: "WaitForPlayers",
   PlaceShips: "PlaceShips",
   PlayerTurn: "PlayerTurn",
   GameOver: "GameOver",
