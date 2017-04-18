@@ -1,6 +1,6 @@
 const React = require('react');
 
-const CELL_SIZE = 30;
+const CELL_SIZE = 50;
 
 const DEFAULT_STYLE = {
   height: CELL_SIZE,

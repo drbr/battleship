@@ -7,4 +7,10 @@ class WaitForPlayers extends React.Component {
   }
 }
 
+WaitForPlayers.propTypes = {
+  gameState: React.PropTypes.shape({
+    players: React.PropTypes.array
+  })
+};
+
 module.exports = WaitForPlayers;

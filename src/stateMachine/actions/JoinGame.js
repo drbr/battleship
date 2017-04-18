@@ -26,7 +26,7 @@ function generateStartingBoard(players) {
   for (let playerId of players) {
     boards[playerId] = _.times(BOARD_SIZE,
         () => _.times(BOARD_SIZE,
-            idx => ({ shipId: idx, hit: false })));
+            idx => ({ shipId: ""+idx, hit: false })));
   }
   return boards;
 }

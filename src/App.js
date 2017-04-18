@@ -64,7 +64,7 @@ class App extends React.Component {
 
     let component = ComponentForPhase[this.state.gameState.phase];
     if (component) {
-      return React.createElement(component, { gameState: this.state.gameState });
+      return React.createElement(component, { gameState: this.state.gameState, playerId: this.state.playerId });
     }
 
     console.log("couldn't figure out what component to get");
