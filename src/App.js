@@ -19,9 +19,16 @@ class App extends React.Component {
 
   socket = null;
 
+  // state = {
+  //   playerId: 0,
+  //   gameState: {
+  //     "phase": PHASES.PlaceShips
+  //   }
+  // };
+
   state = {
-    playerId: null,
-    gameState: null
+    playerId: "1",
+    gameState: PlaceShipsHardcodedGameState
   };
 
   startWebSocket = () => {
@@ -88,3 +95,63 @@ class ConnectToServer extends React.Component {
 }
 
 export default App;
+
+const PlaceShipsHardcodedGameState = {
+    "phase": "PlaceShips",
+    "boardsByPlayer": {
+      "1": [
+        [{
+          "shipId": "0",
+          "hit": false
+        }, {
+          "shipId": "1",
+          "hit": false
+        }, {
+          "shipId": "2",
+          "hit": false
+        }, {
+          "shipId": "3",
+          "hit": false
+        }],
+        [{
+          "shipId": "0",
+          "hit": false
+        }, {
+          "shipId": "1",
+          "hit": false
+        }, {
+          "shipId": "2",
+          "hit": false
+        }, {
+          "shipId": "3",
+          "hit": false
+        }],
+        [{
+          "shipId": "0",
+          "hit": false
+        }, {
+          "shipId": "1",
+          "hit": false
+        }, {
+          "shipId": "2",
+          "hit": false
+        }, {
+          "shipId": "3",
+          "hit": false
+        }],
+        [{
+          "shipId": "0",
+          "hit": false
+        }, {
+          "shipId": "1",
+          "hit": false
+        }, {
+          "shipId": "2",
+          "hit": false
+        }, {
+          "shipId": "3",
+          "hit": false
+        }]
+      ]
+    }
+  };
